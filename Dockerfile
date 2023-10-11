@@ -75,14 +75,14 @@ COPY --chown=superset:superset setup.py MANIFEST.in README.md ./
 # setup.py uses the version information in package.json
 COPY --chown=superset:superset superset-frontend/package.json superset-frontend/
 RUN pip install --no-cache-dir -r requirements/local.txt
-
+RUN pip install --no-cache-dir psycopg2-binary pinotdb redis
 COPY --chown=superset:superset --from=superset-node /app/superset/static/assets superset/static/assets
 ## Lastly, let's install superset itself
 COPY --chown=superset:superset superset superset
 RUN pip install --no-cache-dir -e . \
     && flask fab babel-compile --target superset/translations \
     && chown -R superset:superset superset/translations
-
+RUN pip install --no-cache-dir psycopg2-binary pinotdb redis
 COPY --chmod=755 ./docker/run-server.sh /usr/bin/
 USER superset
 
@@ -119,7 +119,8 @@ RUN apt-get update -q \
 
 # Cache everything for dev purposes...
 RUN pip install --no-cache-dir -r requirements/docker.txt
-
+# install     psycopg2-binary pinotdb redis dependency
+RUN pip install --no-cache-dir psycopg2-binary pinotdb redis
 USER superset
 ######################################################################
 # CI image...
