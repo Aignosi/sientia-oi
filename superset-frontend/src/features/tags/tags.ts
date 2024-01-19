@@ -56,12 +56,12 @@ export function fetchAllTags(
 }
 
 export function fetchSingleTag(
-  name: string,
+  id: number,
   callback: (json: JsonObject) => void,
   error: (response: Response) => void,
 ) {
-  SupersetClient.get({ endpoint: `/api/v1/tag` })
-    .then(({ json }) => callback(json))
+  SupersetClient.get({ endpoint: `/api/v1/tag/${id}` })
+    .then(({ json }) => callback(json.result))
     .catch(response => error(response));
 }
 
@@ -187,6 +187,23 @@ export function fetchObjects(
   error: (response: Response) => void,
 ) {
   let url = `/api/v1/tag/get_objects/?tags=${tags}`;
+  if (types) {
+    url += `&types=${types}`;
+  }
+  SupersetClient.get({ endpoint: url })
+    .then(({ json }) => callback(json.result))
+    .catch(response => error(response));
+}
+
+export function fetchObjectsByTagIds(
+  {
+    tagIds = [],
+    types,
+  }: { tagIds: number[] | undefined; types: string | null },
+  callback: (json: JsonObject) => void,
+  error: (response: Response) => void,
+) {
+  let url = `/api/v1/tag/get_objects/?tagIds=${tagIds}`;
   if (types) {
     url += `&types=${types}`;
   }

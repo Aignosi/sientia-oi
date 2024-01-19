@@ -184,7 +184,10 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY") or CHANGE_ME_SECRET_KEY
 
 # The SQLAlchemy connection string.
-SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DATA_DIR, "superset.db")
+SQLALCHEMY_DATABASE_URI = (
+    f"""sqlite:///{os.path.join(DATA_DIR, "superset.db")}?check_same_thread=false"""
+)
+
 # SQLALCHEMY_DATABASE_URI = 'mysql://myapp@localhost/myapp'
 # SQLALCHEMY_DATABASE_URI = 'postgresql://root:password@localhost/myapp'
 
@@ -348,7 +351,7 @@ PUBLIC_ROLE_LIKE: str | None = None
 BABEL_DEFAULT_LOCALE = "en"
 # Your application default translation path
 BABEL_DEFAULT_FOLDER = "superset/translations"
-# The allowed translation for you app
+# The allowed translation for your app
 LANGUAGES = {
     "en": {"flag": "us", "name": "English"},
     "es": {"flag": "es", "name": "Spanish"},
@@ -399,9 +402,6 @@ CURRENCIES = ["USD", "EUR", "GBP", "INR", "MXN", "JPY", "CNY"]
 # and FEATURE_FLAGS = { 'BAR': True, 'BAZ': True } in superset_config.py
 # will result in combined feature flags of { 'FOO': True, 'BAR': True, 'BAZ': True }
 DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
-    # Experimental feature introducing a client (browser) cache
-    "CLIENT_CACHE": False,  # deprecated
-    "DISABLE_DATASET_SOURCE_EDIT": False,  # deprecated
     # When using a recent version of Druid that supports JOINs turn this on
     "DRUID_JOINS": False,
     "DYNAMIC_PLUGINS": False,
@@ -409,30 +409,19 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     # editor no longer shows. Currently this is set to false so that the editor
     # option does show, but we will be depreciating it.
     "DISABLE_LEGACY_DATASOURCE_EDITOR": True,
-    # For some security concerns, you may need to enforce CSRF protection on
-    # all query request to explore_json endpoint. In Superset, we use
-    # `flask-csrf <https://sjl.bitbucket.io/flask-csrf/>`_ add csrf protection
-    # for all POST requests, but this protection doesn't apply to GET method.
-    # When ENABLE_EXPLORE_JSON_CSRF_PROTECTION is set to true, your users cannot
-    # make GET request to explore_json. explore_json accepts both GET and POST request.
-    # See `PR 7935 <https://github.com/apache/superset/pull/7935>`_ for more details.
-    "ENABLE_EXPLORE_JSON_CSRF_PROTECTION": False,  # deprecated
     "ENABLE_TEMPLATE_PROCESSING": False,
-    "ENABLE_TEMPLATE_REMOVE_FILTERS": True,  # deprecated
     # Allow for javascript controls components
     # this enables programmers to customize certain charts (like the
     # geospatial ones) by inputting javascript in controls. This exposes
     # an XSS security vulnerability
-    "ENABLE_JAVASCRIPT_CONTROLS": False,
-    "KV_STORE": False,
+    "ENABLE_JAVASCRIPT_CONTROLS": False,  # deprecated
+    "KV_STORE": False,  # deprecated
     # When this feature is enabled, nested types in Presto will be
     # expanded into extra columns and/or arrays. This is experimental,
     # and doesn't work with all nested types.
     "PRESTO_EXPAND_DATA": False,
     # Exposes API endpoint to compute thumbnails
     "THUMBNAILS": False,
-    "DASHBOARD_CACHE": False,  # deprecated
-    "REMOVE_SLICE_LEVEL_LABEL_COLORS": False,  # deprecated
     "SHARE_QUERIES_VIA_KV_STORE": False,
     "TAGGING_SYSTEM": False,
     "SQLLAB_BACKEND_PERSISTENCE": True,
@@ -440,18 +429,14 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     # When True, this escapes HTML (rather than rendering it) in Markdown components
     "ESCAPE_MARKDOWN_HTML": False,
     "DASHBOARD_NATIVE_FILTERS": True,  # deprecated
-    "DASHBOARD_CROSS_FILTERS": True,
-    # Feature is under active development and breaking changes are expected
-    "DASHBOARD_NATIVE_FILTERS_SET": False,  # deprecated
-    "DASHBOARD_FILTERS_EXPERIMENTAL": False,  # deprecated
-    "DASHBOARD_VIRTUALIZATION": False,
+    "DASHBOARD_CROSS_FILTERS": True,  # deprecated
+    "DASHBOARD_VIRTUALIZATION": True,
     "GLOBAL_ASYNC_QUERIES": False,
     "VERSIONED_EXPORT": True,  # deprecated
     "EMBEDDED_SUPERSET": False,
     # Enables Alerts and reports new implementation
     "ALERT_REPORTS": False,
     "DASHBOARD_RBAC": False,
-    "ENABLE_EXPLORE_DRAG_AND_DROP": True,  # deprecated
     "ENABLE_ADVANCED_DATA_TYPES": False,
     # Enabling ALERTS_ATTACH_REPORTS, the system sends email and slack message
     # with screenshot and link
@@ -472,12 +457,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     # Enable caching per impersonation key (e.g username) in a datasource where user
     # impersonation is enabled
     "CACHE_IMPERSONATION": False,
-    # Enable caching per user key for Superset cache (not datatabase cache impersonation)
+    # Enable caching per user key for Superset cache (not database cache impersonation)
     "CACHE_QUERY_BY_USER": False,
     # Enable sharing charts with embedding
     "EMBEDDABLE_CHARTS": True,
     "DRILL_TO_DETAIL": True,
-    "DRILL_BY": False,
+    "DRILL_BY": True,
     "DATAPANEL_CLOSED_BY_DEFAULT": False,
     "HORIZONTAL_FILTER_BAR": False,
     # The feature is off by default, and currently only supported in Presto and Postgres,
@@ -490,9 +475,7 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     # otherwise enabling this flag won't have any effect on the DB.
     "SSH_TUNNELING": False,
     "AVOID_COLORS_COLLISION": True,
-    # Set to False to only allow viewing own recent activity
-    # or to disallow users from viewing other users profile page
-    # Do not show user info or profile in the menu
+    # Do not show user info in the menu
     "MENU_HIDE_USER_INFO": False,
     # Allows users to add a ``superset://`` DB that can query across databases. This is
     # an experimental feature with potential security and performance risks, so use with
@@ -500,6 +483,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, bool] = {
     # returned from each database in the ``SUPERSET_META_DB_LIMIT`` configuration value
     # in this file.
     "ENABLE_SUPERSET_META_DB": False,
+    # Set to True to replace Selenium with Playwright to execute reports and thumbnails.
+    # Unlike Selenium, Playwright reports support deck.gl visualizations
+    # Enabling this feature flag requires installing "playwright" pip package
+    "PLAYWRIGHT_REPORTS_AND_THUMBNAILS": False,
 }
 
 # ------------------------------
@@ -675,6 +662,14 @@ SCREENSHOT_REPLACE_UNEXPECTED_ERRORS = False
 SCREENSHOT_WAIT_FOR_ERROR_MODAL_VISIBLE = 5
 # Max time to wait for error message modal to close, in seconds
 SCREENSHOT_WAIT_FOR_ERROR_MODAL_INVISIBLE = 5
+# Event that Playwright waits for when loading a new page
+# Possible values: "load", "commit", "domcontentloaded", "networkidle"
+# Docs: https://playwright.dev/python/docs/api/class-page#page-goto-option-wait-until
+SCREENSHOT_PLAYWRIGHT_WAIT_EVENT = "load"
+# Default timeout for Playwright browser context for all operations
+SCREENSHOT_PLAYWRIGHT_DEFAULT_TIMEOUT = int(
+    timedelta(seconds=30).total_seconds() * 1000
+)
 
 # ---------------------------------------------------
 # Image and file configuration
@@ -743,7 +738,7 @@ CORS_OPTIONS: dict[Any, Any] = {}
 HTML_SANITIZATION = True
 
 # Use this configuration to extend the HTML sanitization schema.
-# By default we use the Gihtub schema defined in
+# By default we use the GitHub schema defined in
 # https://github.com/syntax-tree/hast-util-sanitize/blob/main/lib/schema.js
 # For example, the following configuration would allow the rendering of the
 # style attribute for div elements and the ftp protocol in hrefs:
@@ -811,7 +806,7 @@ TIME_GRAIN_ADDON_EXPRESSIONS: dict[str, dict[str, str]] = {}
 
 # Map of custom time grains and artificial join column producers used
 # when generating the join key between results and time shifts.
-# See supeset/common/query_context_processor.get_aggregated_join_column
+# See superset/common/query_context_processor.get_aggregated_join_column
 #
 # Example of a join column producer that aggregates by fiscal year
 # def join_producer(row: Series, column_index: int) -> str:
@@ -914,6 +909,10 @@ DASHBOARD_AUTO_REFRESH_INTERVALS = [
     [86400, "24 hours"],
 ]
 
+# This is used as a workaround for the alerts & reports scheduler task to get the time
+# celery beat triggered it, see https://github.com/celery/celery/issues/6974 for details
+CELERY_BEAT_SCHEDULER_EXPIRES = timedelta(weeks=1)
+
 # Default celery config is to use SQLA as a broker, in a production setting
 # you'll want to use a proper broker as specified here:
 # https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/index.html
@@ -921,27 +920,20 @@ DASHBOARD_AUTO_REFRESH_INTERVALS = [
 
 class CeleryConfig:  # pylint: disable=too-few-public-methods
     broker_url = "sqla+sqlite:///celerydb.sqlite"
-    imports = ("superset.sql_lab",)
+    imports = ("superset.sql_lab", "superset.tasks.scheduler")
     result_backend = "db+sqlite:///celery_results.sqlite"
     worker_prefetch_multiplier = 1
     task_acks_late = False
     task_annotations = {
-        "sql_lab.get_sql_results": {"rate_limit": "100/s"},
-        "email_reports.send": {
-            "rate_limit": "1/s",
-            "time_limit": int(timedelta(seconds=120).total_seconds()),
-            "soft_time_limit": int(timedelta(seconds=150).total_seconds()),
-            "ignore_result": True,
+        "sql_lab.get_sql_results": {
+            "rate_limit": "100/s",
         },
     }
     beat_schedule = {
-        "email_reports.schedule_hourly": {
-            "task": "email_reports.schedule_hourly",
-            "schedule": crontab(minute=1, hour="*"),
-        },
         "reports.scheduler": {
             "task": "reports.scheduler",
             "schedule": crontab(minute="*", hour="*"),
+            "options": {"expires": int(CELERY_BEAT_SCHEDULER_EXPIRES.total_seconds())},
         },
         "reports.prune_log": {
             "task": "reports.prune_log",
@@ -1097,7 +1089,7 @@ CSV_DEFAULT_NA_NAMES = list(STR_NA_VALUES)
 # dictionary. Exposing functionality through JINJA_CONTEXT_ADDONS has security
 # implications as it opens a window for a user to execute untrusted code.
 # It's important to make sure that the objects exposed (as well as objects attached
-# to those objets) are harmless. We recommend only exposing simple/pure functions that
+# to those objects) are harmless. We recommend only exposing simple/pure functions that
 # return native types.
 JINJA_CONTEXT_ADDONS: dict[str, Callable[..., Any]] = {}
 
@@ -1109,7 +1101,7 @@ JINJA_CONTEXT_ADDONS: dict[str, Callable[..., Any]] = {}
 # basis. Example value = `{"presto": CustomPrestoTemplateProcessor}`
 CUSTOM_TEMPLATE_PROCESSORS: dict[str, type[BaseTemplateProcessor]] = {}
 
-# Roles that are controlled by the API / Superset and should not be changes
+# Roles that are controlled by the API / Superset and should not be changed
 # by humans.
 ROBOT_PERMISSION_ROLES = ["Public", "Gamma", "Alpha", "Admin", "sql_lab"]
 
@@ -1342,8 +1334,9 @@ WEBDRIVER_WINDOW = {
     "pixel_density": 1,
 }
 
-# An optional override to the default auth hook used to provide auth to the
-# offline webdriver
+# An optional override to the default auth hook used to provide auth to the offline
+# webdriver (when using Selenium) or browser context (when using Playwright - see
+# PLAYWRIGHT_REPORTS_AND_THUMBNAILS feature flag)
 WEBDRIVER_AUTH_FUNC = None
 
 # Any config options to be passed as-is to the webdriver
@@ -1412,8 +1405,15 @@ TALISMAN_ENABLED = utils.cast_to_boolean(os.environ.get("TALISMAN_ENABLED", True
 # If you want Talisman, how do you want it configured??
 TALISMAN_CONFIG = {
     "content_security_policy": {
+        "base-uri": ["'self'"],
         "default-src": ["'self'"],
-        "img-src": ["'self'", "data:"],
+        "img-src": [
+            "'self'",
+            "blob:",
+            "data:",
+            "https://apachesuperset.gateway.scarf.sh",
+            "https://static.scarf.sh/",
+        ],
         "worker-src": ["'self'", "blob:"],
         "connect-src": [
             "'self'",
@@ -1421,17 +1421,28 @@ TALISMAN_CONFIG = {
             "https://events.mapbox.com",
         ],
         "object-src": "'none'",
-        "style-src": ["'self'", "'unsafe-inline'"],
+        "style-src": [
+            "'self'",
+            "'unsafe-inline'",
+        ],
         "script-src": ["'self'", "'strict-dynamic'"],
     },
     "content_security_policy_nonce_in": ["script-src"],
     "force_https": False,
+    "session_cookie_secure": False,
 }
 # React requires `eval` to work correctly in dev mode
 TALISMAN_DEV_CONFIG = {
     "content_security_policy": {
+        "base-uri": ["'self'"],
         "default-src": ["'self'"],
-        "img-src": ["'self'", "data:"],
+        "img-src": [
+            "'self'",
+            "blob:",
+            "data:",
+            "https://apachesuperset.gateway.scarf.sh",
+            "https://static.scarf.sh/",
+        ],
         "worker-src": ["'self'", "blob:"],
         "connect-src": [
             "'self'",
@@ -1439,11 +1450,15 @@ TALISMAN_DEV_CONFIG = {
             "https://events.mapbox.com",
         ],
         "object-src": "'none'",
-        "style-src": ["'self'", "'unsafe-inline'"],
+        "style-src": [
+            "'self'",
+            "'unsafe-inline'",
+        ],
         "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
     },
     "content_security_policy_nonce_in": ["script-src"],
     "force_https": False,
+    "session_cookie_secure": False,
 }
 
 #
@@ -1455,6 +1470,18 @@ TALISMAN_DEV_CONFIG = {
 SESSION_COOKIE_HTTPONLY = True  # Prevent cookie from being read by frontend JS?
 SESSION_COOKIE_SECURE = False  # Prevent cookie from being transmitted over non-tls?
 SESSION_COOKIE_SAMESITE: Literal["None", "Lax", "Strict"] | None = "Lax"
+# Whether to use server side sessions from flask-session or Flask secure cookies
+SESSION_SERVER_SIDE = False
+# Example config using Redis as the backend for server side sessions
+# from flask_session import RedisSessionInterface
+#
+# SESSION_SERVER_SIDE = True
+# SESSION_USE_SIGNER = True
+# SESSION_TYPE = "redis"
+# SESSION_REDIS = Redis(host="localhost", port=6379, db=0)
+#
+# Other possible config options and backends:
+# # https://flask-session.readthedocs.io/en/latest/config.html
 
 # Cache static resources.
 SEND_FILE_MAX_AGE_DEFAULT = int(timedelta(days=365).total_seconds())
@@ -1498,6 +1525,9 @@ SQLA_TABLE_MUTATOR = lambda table: table
 
 # Global async query config options.
 # Requires GLOBAL_ASYNC_QUERIES feature flag to be enabled.
+GLOBAL_ASYNC_QUERY_MANAGER_CLASS = (
+    "superset.async_events.async_query_manager.AsyncQueryManager"
+)
 GLOBAL_ASYNC_QUERIES_REDIS_CONFIG = {
     "port": 6379,
     "host": "127.0.0.1",
@@ -1508,6 +1538,7 @@ GLOBAL_ASYNC_QUERIES_REDIS_CONFIG = {
 GLOBAL_ASYNC_QUERIES_REDIS_STREAM_PREFIX = "async-events-"
 GLOBAL_ASYNC_QUERIES_REDIS_STREAM_LIMIT = 1000
 GLOBAL_ASYNC_QUERIES_REDIS_STREAM_LIMIT_FIREHOSE = 1000000
+GLOBAL_ASYNC_QUERIES_REGISTER_REQUEST_HANDLERS = True
 GLOBAL_ASYNC_QUERIES_JWT_COOKIE_NAME = "async-token"
 GLOBAL_ASYNC_QUERIES_JWT_COOKIE_SECURE = False
 GLOBAL_ASYNC_QUERIES_JWT_COOKIE_SAMESITE: None | (
@@ -1515,7 +1546,7 @@ GLOBAL_ASYNC_QUERIES_JWT_COOKIE_SAMESITE: None | (
 ) = None
 GLOBAL_ASYNC_QUERIES_JWT_COOKIE_DOMAIN = None
 GLOBAL_ASYNC_QUERIES_JWT_SECRET = "test-secret-change-me"
-GLOBAL_ASYNC_QUERIES_TRANSPORT = "polling"
+GLOBAL_ASYNC_QUERIES_TRANSPORT: Literal["polling", "ws"] = "polling"
 GLOBAL_ASYNC_QUERIES_POLLING_DELAY = int(
     timedelta(milliseconds=500).total_seconds() * 1000
 )
@@ -1577,6 +1608,11 @@ ADVANCED_DATA_TYPES: dict[str, AdvancedDataType] = {
 WELCOME_PAGE_LAST_TAB: (
     Literal["examples", "all"] | tuple[str, list[dict[str, Any]]]
 ) = "all"
+
+# Max allowed size for a zipped file
+ZIPPED_FILE_MAX_SIZE = 100 * 1024 * 1024  # 100MB
+# Max allowed compression ratio for a zipped file
+ZIP_FILE_MAX_COMPRESS_RATIO = 200.0
 
 # Configuration for environment tag shown on the navbar. Setting 'text' to '' will hide the tag.
 # 'color' can either be a hex color code, or a dot-indexed theme color (e.g. error.base)
